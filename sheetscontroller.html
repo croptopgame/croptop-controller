@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crop Top Controller</title>
+  <style>
+    body {
+      font-family: Menlo, monospace;
+      background-color: #65077e; /* Deep violet */
+      color: #00f2c2; /* Light turquoise */
+      padding: 10px;
+      text-align: center;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 2.2em;
+      margin-bottom: 15px;
+      text-decoration: underline;
+    }
+
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px; /* Reduced spacing between buttons */
+      justify-content: center;
+      align-items: center;
+    }
+
+    .button {
+      background-color: transparent;
+      color: #00f2c2; /* Light turquoise */
+      font-size: 1.4em; /* Slightly smaller font size for mobile */
+      padding: 10px 20px; /* Reduced padding */
+      border: none;
+      text-align: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.3s;
+      border-radius: 5px;
+      width: 100%; /* Make buttons take full width of screen */
+      max-width: 350px; /* Limit button width for larger screens */
+    }
+
+    .button:hover {
+      opacity: 0.7;
+    }
+
+    .button:active {
+      opacity: 0.5;
+    }
+
+    /* Ensure responsive text size for smaller screens */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.8em;
+      }
+
+      .button {
+        font-size: 1.2em; /* Even smaller font size on small screens */
+        padding: 8px 16px; /* Smaller padding on small screens */
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Crop Top</h1>
+  <div class="button-container" id="button-container"></div>
+
+  <script>
+    // URL for your Google Apps Script Web App
+    const url = 'https://script.google.com/macros/s/AKfycbxciZkxGL8RKzOVASTzKtlm_FRG-0pqx6cOgESNZqjUGodcI8ghXv5h2OEu7yD9N6sG/exec';
+
+    // Fetch the data from Google Sheets
+    async function fetchRandomNames() {
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Extract RandomName1 to RandomName12 from the data
+        const randomNames = [];
+        for (let i = 1; i <= 12; i++) {
+          const randomName = data[`RandomName${i}`];
+          if (randomName) {
+            randomNames.push(randomName);
+          }
+        }
+
+        // Display the names as buttons
+        displayButtons(randomNames);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    // Function to display the names as clickable text
+    function displayButtons(names) {
+      const container = document.getElementById('button-container');
+      container.innerHTML = ''; // Clear previous content
+
+      names.forEach((name, index) => {
+        const button = document.createElement('div');
+        button.classList.add('button');
+        button.textContent = name;
+
+        // Set the button action to update "CurrentGuess" when clicked
+        button.onclick = () => updateCurrentGuess(name);
+
+        container.appendChild(button);
+      });
+    }
+
+    // Function to update "CurrentGuess" in Google Sheets when a name is clicked
+async function updateCurrentGuess(selectedName) {
+    const updateUrl = 'https://script.google.com/macros/s/AKfycbxciZkxGL8RKzOVASTzKtlm_FRG-0pqx6cOgESNZqjUGodcI8ghXv5h2OEu7yD9N6sG/exec';  // Google Sheets URL for POST requests
+
+    const data = {
+        VariableName: 'CurrentGuess', // The variable we're updating
+        Value: selectedName,          // The value to update (the selected name)
+    };
+
+    const params = {
+        method: 'POST',              // Make the request as POST
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded', // Required for form data
+        },
+        body: new URLSearchParams(data).toString() // Convert data to URL-encoded string
+    };
+
+    try {
+        const response = await fetch(updateUrl, params);
+        const responseData = await response.text(); // Get the response text from the server
+        console.log('Update response:', responseData); // Log the response from the Apps Script Web App
+    } catch (error) {
+        console.error('Error updating CurrentGuess:', error); // Handle any errors
+    }
+}
+
+
+    // Call the function to fetch and display the names when the page loads
+    fetchRandomNames();
+  </script>
+</body>
+</html>
